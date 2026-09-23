@@ -9,6 +9,7 @@ zgodnie z FR-13 (rollout modeli bez przestoju).
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 from .features import Features
@@ -17,14 +18,21 @@ from .features import Features
 # nauczone z danych (spec §7.3) i wersjonowane w model registry (§10.1).
 _WEIGHTS: dict[str, float] = {
     "max_field_entropy": 0.12,     # >4.5 bitów/znak sugeruje losowy/obfuskowany payload
-    "max_field_length": 0.0005,    # bardzo długie pola są podejrzane
+    "max_field_length": 0.05,      # log-skala poniżej; bardzo długie pola są podejrzane
     "rule_hit_count": 0.25,
     "max_rule_severity": 0.15,
-    "requests_last_window": 0.01,  # wysoka częstotliwość => możliwy bot/brute force
-    "unique_endpoints_last_window": 0.02,  # scraping/enumeracja
+    "requests_last_window": 0.05,  # log-skala poniżej; wysoka częstotliwość => możliwy bot/brute force
+    "unique_endpoints_last_window": 0.02,  # log-skala poniżej; scraping/enumeracja
     "reputation_score": 0.35,      # zasilane przez feedback LLM, spec §6.3
 }
-MODEL_VERSION = "heuristic-baseline-v0.1.0"
+# Cechy typu "licznik" bez naturalnej górnej granicy (w przeciwieństwie
+# do np. entropii ~0-8 czy reputation_score 0-1). Bez log-skali jeden
+# legalny klient za NAT-em/CDN-em generujący dużo ruchu z jednego
+# postrzeganego IP eksploduje te cechy liniowo i trafia próg blokady
+# wyłącznie przez wolumen -- wykryte load testem w loadtest/, patrz
+# loadtest/README.md.
+_LOG_SCALED_FEATURES = {"max_field_length", "requests_last_window", "unique_endpoints_last_window"}
+MODEL_VERSION = "heuristic-baseline-v0.2.0"
 
 
 @dataclass(frozen=True)
@@ -44,7 +52,11 @@ def score(features: Features) -> ScoreResult:
         "unique_endpoints_last_window": features.unique_endpoints_last_window,
         "reputation_score": features.reputation_score,
     }
-    contributions = {name: _WEIGHTS[name] * val for name, val in values.items()}
+    scaled = {
+        name: (math.log1p(val) if name in _LOG_SCALED_FEATURES else val)
+        for name, val in values.items()
+    }
+    contributions = {name: _WEIGHTS[name] * val for name, val in scaled.items()}
     raw = sum(contributions.values())
     normalized = raw / (1.0 + raw)  # kompresja do (0, 1), monotoniczna względem raw
 

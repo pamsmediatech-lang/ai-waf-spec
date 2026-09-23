@@ -43,3 +43,21 @@ def test_top_features_includes_dominant_contributor():
 def test_model_version_is_reported():
     result = score(_feats())
     assert result.model_version
+
+
+def test_sustained_high_volume_from_one_client_does_not_alone_reach_block_threshold():
+    # regression: found via load testing (loadtest/README.md) -- a single
+    # legitimate client behind NAT/CDN can generate thousands of requests
+    # per window with no attack content at all. Before the log1p fix,
+    # requests_last_window was weighted linearly and alone pushed the
+    # score to ~1.0, hard-blocking ordinary high-frequency clients.
+    result = score(_feats(requests_last_window=5000, unique_endpoints_last_window=3))
+    assert result.score < 0.75  # below Policy.ai_block_threshold default
+
+
+def test_score_scales_sublinearly_with_request_volume():
+    low = score(_feats(requests_last_window=10))
+    high = score(_feats(requests_last_window=10_000))
+    # 1000x more requests should not translate into anywhere near a
+    # proportional score increase (log-scaling, not linear).
+    assert high.score < low.score * 20
