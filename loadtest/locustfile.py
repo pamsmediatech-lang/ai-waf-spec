@@ -28,9 +28,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from locust import HttpUser, between, task  # noqa: E402
+from locust import HttpUser, between, task
 
-from ml.dataset import MALICIOUS_PAYLOADS  # noqa: E402 -- reużycie tych samych payloadów co w treningu (spec §7.3)
+from ml.dataset import (
+    MALICIOUS_PAYLOADS,
+)
 
 BENIGN_SEARCH_TERMS = ["laptop bag", "running shoes", "coffee maker", "desk lamp", "winter jacket"]
 

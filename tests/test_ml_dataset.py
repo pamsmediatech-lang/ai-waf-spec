@@ -16,7 +16,7 @@ def test_dataset_has_expected_size_and_balance():
 
 
 def test_every_sample_has_all_feature_names_and_no_missing_values():
-    X, y = build_dataset(n_benign=20, n_malicious=20, seed=1)
+    X, _y = build_dataset(n_benign=20, n_malicious=20, seed=1)
     for row in X:
         assert set(row.keys()) == set(FEATURE_NAMES)
         for value in row.values():
@@ -31,5 +31,6 @@ def test_malicious_samples_are_not_all_trivially_flagged_by_rules():
     # brute force) must have zero rule hits to make the dataset a real
     # test of the AI layer rather than a rules lookup table.
     X, y = build_dataset(n_benign=300, n_malicious=300, seed=1)
-    malicious_with_no_rule_hit = [row for row, label in zip(X, y) if label == 1 and row["rule_hit_count"] == 0]
+    malicious_with_no_rule_hit = [row for row, label in zip(X, y, strict=True)
+                                   if label == 1 and row["rule_hit_count"] == 0]
     assert len(malicious_with_no_rule_hit) > 0

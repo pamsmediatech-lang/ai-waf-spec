@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import joblib
@@ -57,13 +57,13 @@ def train_and_evaluate(n_benign: int = 600, n_malicious: int = 600, seed: int = 
     report_text = classification_report(y_test, y_pred, target_names=["benign", "malicious"])
 
     feature_importances = sorted(
-        zip(FEATURE_NAMES, model.feature_importances_.tolist()),
+        zip(FEATURE_NAMES, model.feature_importances_.tolist(), strict=True),
         key=lambda pair: pair[1], reverse=True,
     )
 
     metadata = {
         "model_version": MODEL_VERSION,
-        "trained_at": datetime.now(timezone.utc).isoformat(),
+        "trained_at": datetime.now(UTC).isoformat(),
         "feature_names": FEATURE_NAMES,
         "dataset": {"n_benign": n_benign, "n_malicious": n_malicious, "seed": seed},
         "metrics": {"precision": precision, "recall": recall, "f1": f1},

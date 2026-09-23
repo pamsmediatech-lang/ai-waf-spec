@@ -12,8 +12,10 @@ from .events import Event, build_event
 from .request import WafRequest
 from .session_store import SessionStore
 
+_DEFAULT_POLICY = Policy()
 
-def inspect(request: WafRequest, store: SessionStore, policy: Policy = Policy()) -> tuple[DecisionResult, Event]:
+
+def inspect(request: WafRequest, store: SessionStore, policy: Policy = _DEFAULT_POLICY) -> tuple[DecisionResult, Event]:
     start = time.perf_counter()
 
     rule_matches = rules_mod.evaluate(request)

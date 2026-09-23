@@ -51,7 +51,8 @@ def create_app(
     app.state.policy = policy or Policy()
     app.state.backend_url = backend_url.rstrip("/")
     app.state.http_client = http_client or httpx.AsyncClient()
-    app.state.events: list[dict] = []  # ponytail: bufor w pamięci; upgrade do async pipeline -> SIEM (spec §5.1) w produkcji
+    # ponytail: bufor w pamięci; upgrade do async pipeline -> SIEM (spec §5.1) w produkcji
+    app.state.events: list[dict] = []
 
     @app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"])
     async def catch_all(full_path: str, request: Request) -> Response:

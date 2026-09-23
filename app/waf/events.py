@@ -1,10 +1,9 @@
 """Zdarzenie audytowe zgodne ze schematem z spec §8, FR-9."""
 from __future__ import annotations
 
-import time
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from .decision import DecisionResult
 from .request import WafRequest
@@ -40,7 +39,7 @@ def build_event(request: WafRequest, result: DecisionResult, latency_ms: float) 
     }
     return Event(
         event_id=str(uuid.uuid4()),
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         method=request.method,
         path=request.path,
         client_ip=request.client_ip,

@@ -41,7 +41,7 @@ class TrainedScorer:
         self._top_features_global = [name for name, _ in feature_importances[:3]]
 
     @classmethod
-    def load(cls, model_version: str, artifacts_dir: Path = DEFAULT_ARTIFACTS_DIR) -> "TrainedScorer":
+    def load(cls, model_version: str, artifacts_dir: Path = DEFAULT_ARTIFACTS_DIR) -> TrainedScorer:
         model_path = artifacts_dir / f"{model_version}.joblib"
         meta_path = artifacts_dir / f"{model_version}.json"
         if not model_path.exists() or not meta_path.exists():

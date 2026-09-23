@@ -30,9 +30,15 @@ def _shannon_entropy(text: str) -> float:
 
 
 def extract(request: WafRequest, rule_matches: list[RuleMatch], client_state: ClientState) -> Features:
-    field_values = [v for _, v in request.fields()]
-    entropies = [_shannon_entropy(v) for v in field_values] or [0.0]
-    lengths = [len(v) for v in field_values] or [0]
+    # Entropia/długość mają wykrywać obfuskowany payload w polach, które
+    # atakujący faktycznie kontroluje pod kątem wstrzyknięcia (query/body/
+    # path) -- nie nagłówki negocjacji przeglądarki (Accept, User-Agent),
+    # które z natury są długie i umiarkowanie entropijne u KAŻDEGO klienta
+    # (znalezione na żywej przeglądarce: standardowy nagłówek Accept sam
+    # w sobie podbijał wynik AI do strefy challenge dla każdego żądania).
+    injection_surface = [v for name, v in request.fields() if not name.startswith("header:")]
+    entropies = [_shannon_entropy(v) for v in injection_surface] or [0.0]
+    lengths = [len(v) for v in injection_surface] or [0]
     severities = [m.severity for m in rule_matches] or [0]
 
     return Features(
