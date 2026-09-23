@@ -57,3 +57,31 @@ def test_store_never_exceeds_max_clients_under_sustained_load():
     for i in range(10_000):
         store.record(f"ip-{i}", "/", now=float(i))
     assert len(store) <= 100
+
+
+def test_request_exactly_at_window_boundary_is_kept():
+    store = SessionStore(window_seconds=60)
+    store.record("1.1.1.1", "/", now=0.0)
+    state = store.record("1.1.1.1", "/", now=60.0)  # exactly window_seconds later
+    assert len(state.request_times) == 2
+
+
+def test_request_just_past_window_boundary_is_dropped():
+    store = SessionStore(window_seconds=60)
+    store.record("1.1.1.1", "/", now=0.0)
+    state = store.record("1.1.1.1", "/", now=60.001)
+    assert len(state.request_times) == 1
+
+
+def test_get_on_unseen_client_returns_fresh_empty_state():
+    store = SessionStore()
+    state = store.get("never-seen-before")
+    assert state.request_times == []
+    assert state.endpoints == set()
+    assert state.reputation_score == 0.0
+
+
+def test_bump_reputation_on_unseen_client_starts_from_zero():
+    store = SessionStore()
+    store.bump_reputation("fresh-ip", 0.3)
+    assert store.get("fresh-ip").reputation_score == 0.3

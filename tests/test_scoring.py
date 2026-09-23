@@ -3,15 +3,15 @@ from app.waf.scoring import score
 
 
 def _feats(**overrides) -> Features:
-    base = dict(
-        max_field_entropy=0.0,
-        max_field_length=0,
-        rule_hit_count=0,
-        max_rule_severity=0,
-        requests_last_window=1,
-        unique_endpoints_last_window=1,
-        reputation_score=0.0,
-    )
+    base = {
+        "max_field_entropy": 0.0,
+        "max_field_length": 0,
+        "rule_hit_count": 0,
+        "max_rule_severity": 0,
+        "requests_last_window": 1,
+        "unique_endpoints_last_window": 1,
+        "reputation_score": 0.0,
+    }
     base.update(overrides)
     return Features(**base)
 
