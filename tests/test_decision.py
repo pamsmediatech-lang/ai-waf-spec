@@ -42,6 +42,38 @@ def test_policy_thresholds_are_configurable():
     assert result.decision == Decision.BLOCK
 
 
+def test_ai_score_exactly_at_block_threshold_blocks():
+    policy = Policy()  # default ai_block_threshold=0.75
+    result = decide([], _score(policy.ai_block_threshold))
+    assert result.decision == Decision.BLOCK
+
+
+def test_ai_score_just_below_block_threshold_does_not_block():
+    policy = Policy()
+    result = decide([], _score(policy.ai_block_threshold - 0.0001))
+    assert result.decision != Decision.BLOCK
+
+
+def test_ai_score_exactly_at_challenge_threshold_challenges():
+    policy = Policy()  # default ai_challenge_threshold=0.45
+    result = decide([], _score(policy.ai_challenge_threshold))
+    assert result.decision == Decision.CHALLENGE
+
+
+def test_rule_severity_exactly_at_critical_threshold_blocks():
+    policy = Policy()  # default critical_rule_severity=5
+    matches = [RuleMatch("test-rule", "test", policy.critical_rule_severity, "body")]
+    result = decide(matches, _score(0.0), policy)
+    assert result.decision == Decision.BLOCK
+
+
+def test_rule_severity_one_below_critical_threshold_does_not_auto_block():
+    policy = Policy()
+    matches = [RuleMatch("test-rule", "test", policy.critical_rule_severity - 1, "body")]
+    result = decide(matches, _score(0.0), policy)
+    assert result.decision != Decision.BLOCK
+
+
 def test_decision_result_carries_explainability_data():
     matches = [RuleMatch("942100-sqli-union-select", "sqli", 5, "query:id")]
     result = decide(matches, _score(0.5, top=["rule_hit_count"]))

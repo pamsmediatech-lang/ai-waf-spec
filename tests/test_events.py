@@ -20,7 +20,8 @@ def test_authorization_and_cookie_headers_are_redacted():
 
 def test_event_has_unique_id_and_matches_decision():
     req = WafRequest(method="GET", path="/", client_ip="127.0.0.1")
-    result = DecisionResult(Decision.BLOCK, "critical_rule_match", ["942100-sqli-union-select"], 0.9, ["rule_hit_count"], "test-v1")
+    result = DecisionResult(Decision.BLOCK, "critical_rule_match", ["942100-sqli-union-select"],
+                             0.9, ["rule_hit_count"], "test-v1")
     event = build_event(req, result, latency_ms=2.0)
 
     assert event.decision == "block"
@@ -33,4 +34,4 @@ def test_body_size_reflects_utf8_byte_length():
     req = WafRequest(method="POST", path="/", client_ip="127.0.0.1", body="héllo")
     result = DecisionResult(Decision.ALLOW, "no_signal", [], 0.0, [], "test-v1")
     event = build_event(req, result, latency_ms=1.0)
-    assert event.body_size == len("héllo".encode("utf-8"))
+    assert event.body_size == len("héllo".encode())

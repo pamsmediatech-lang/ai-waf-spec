@@ -100,6 +100,29 @@ def test_oversized_body_is_rejected_with_413():
     assert resp.status_code == 413
 
 
+def test_head_request_is_forwarded_without_crashing(client: TestClient):
+    # backend only declares GET on /products (no explicit HEAD support),
+    # so 405 from the backend is a valid pass-through -- the point of
+    # this test is that the WAF proxies HEAD end-to-end instead of
+    # rejecting/crashing on a method it doesn't special-case.
+    resp = client.head("/products")
+    assert resp.status_code in (200, 405)
+    assert "X-AI-WAF-Decision" in resp.headers
+
+
+def test_non_numeric_content_length_does_not_crash_size_check(client: TestClient):
+    # a malformed/non-digit Content-Length must not raise -- the
+    # isdigit() guard in proxy.py should just skip the pre-check and
+    # fall through to the actual-byte-length check after reading the body.
+    resp = client.post("/login", content=b'{"username":"x"}', headers={"Content-Length": "not-a-number"})
+    assert resp.status_code in (200, 403)  # must not be a 500
+
+
+def test_root_path_is_handled(client: TestClient):
+    resp = client.get("/")
+    assert resp.status_code in (200, 403, 404)  # backend has no "/" route, but WAF must not crash
+
+
 def test_unreachable_backend_returns_502():
     async def _raise(*args, **kwargs):
         raise httpx.ConnectError("connection refused")

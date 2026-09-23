@@ -88,10 +88,19 @@ MALICIOUS_FIELD_SLOTS = ["query:id", "query:search", "query:input", "body", "pat
 # nic nie złapała. To realny test odporności na obejścia (spec §7.5),
 # nie tylko "czy model nauczył się reguł na nowo".
 EVASIVE_PAYLOADS: list[tuple[str, str]] = [
-    ("sqli", "1 UN/**/ION SEL/**/ECT password FROM users"),  # rozbite słowo kluczowe
+    # Homoglify cyrylickie (U+043E 'о', U+0435 'е') zamiast łacińskich liter
+    # w "union select" -- normalize_text() robi tylko url-decode + NFKC,
+    # nie podmienia confusables, więc dopasowanie literału "union\s+select"
+    # nie trafia. ponytail: NIE "1 UN/**/ION SEL/**/ECT..." -- to trafia
+    # regułę 942102 (dowolny komentarz /*.../ jest już łapany jako sqli),
+    # więc wcale nie omija reguł (znalezione przez test_rules.py).
+    ("sqli", "1 uniоn selеct password from users"),
     ("sqli", "1 OR CONCAT(0x27,0x31,0x27)=CONCAT(0x27,0x31,0x27)"),  # bez '=' wprost między liczbami
     ("path_traversal", "..%c0%af..%c0%afetc%c0%afpasswd"),  # overlong UTF-8 '/' -- nie dekoduje się do '/'
-    ("command_injection", "8.8.8.8\ncat /etc/passwd"),  # separator to newline, nie ; | &&
+    # ponytail: NIE "...cat /etc/passwd" -- literalny substring "/etc/passwd"
+    # trafia regułę 930100-path-traversal niezależnie od separatora, więc to
+    # też wcale nie testowało ominięcia reguły command-injection.
+    ("command_injection", "8.8.8.8\ncat /tmp/secret.txt"),  # separator to newline, nie ; | &&
     ("command_injection", "127.0.0.1\nwhoami"),
 ]
 
@@ -183,7 +192,7 @@ def build_dataset(n_benign: int = 600, n_malicious: int = 600, seed: int = 42,
     n_obvious = n_malicious - n_evasive - n_brute_force
 
     for _ in range(n_obvious):
-        category, payload = rng.choice(MALICIOUS_PAYLOADS)
+        _category, payload = rng.choice(MALICIOUS_PAYLOADS)
         slot = rng.choice(MALICIOUS_FIELD_SLOTS)
         req = _apply_payload_to_request(payload, slot)
         # część ataków to pojedynczy strzał (n_prior=0) -- sygnał musi

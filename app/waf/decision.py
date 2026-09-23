@@ -8,13 +8,13 @@ inwazyjny środek niż twarde blokowanie w strefie niepewności.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 from .rules import RuleMatch
 from .scoring import ScoreResult
 
 
-class Decision(str, Enum):
+class Decision(StrEnum):
     ALLOW = "allow"
     MONITOR = "monitor"
     CHALLENGE = "challenge"
@@ -40,7 +40,10 @@ class DecisionResult:
     model_version: str
 
 
-def decide(rule_matches: list[RuleMatch], ai_result: ScoreResult, policy: Policy = Policy()) -> DecisionResult:
+_DEFAULT_POLICY = Policy()
+
+
+def decide(rule_matches: list[RuleMatch], ai_result: ScoreResult, policy: Policy = _DEFAULT_POLICY) -> DecisionResult:
     rule_ids = [m.rule_id for m in rule_matches]
 
     critical_hit = any(m.severity >= policy.critical_rule_severity for m in rule_matches)
