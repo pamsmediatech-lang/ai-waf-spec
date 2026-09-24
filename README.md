@@ -1,35 +1,5 @@
 # AI-WAF — Web Application Firewall wspomagany AI (czas rzeczywisty)
 
-```
-                              _===_
-                          .-'"     "'-.
-                        .'   __   __   '.
-                       /    /  \ /  \    \
-                      |    | () | () |    |
-                      |     \__/ \__/     |
-                       \        ^        /
-                        '.    '---'    .'
-                     _.--'"'-.......-'"'--._
-                   .'          |            '.
-                  /   _.-------+------.       \
-                 |  .'   /|    |    |\ '.       |
-                 | /    / |    |    | \  \      |
-    ___===_______|/    /  |    |    |  \  \_____|_______===___
-   /                  /   |    |    |   \                     \
-  |     [===]        /    |    |    |    \        [===]        |
-   \___/     \______/     |    |    |     \______/     \______/
-        \_________________|____|____|_________________/
-                      |    |    |    |
-                      |    |    |    |
-                      |____|    |____|
-                      |    |    |    |
-                     _|    |    |    |_
-                    (___________________)
-
-              M  Ś  C  I  C  H  U  J
-        Potężny wojownik strzegący bramy AI-WAF
-```
-
 Silnik reguł statycznych (OWASP CRS-like) + warstwa AI (heurystyka bazowa,
 z kontraktem gotowym na podmianę na wytrenowany model) do wykrywania
 i blokowania ataków webowych w czasie rzeczywistym, inline, na ścieżce
