@@ -576,10 +576,21 @@ gantt
 3. Czy wymagana jest zgodność z konkretną normą (PCI-DSS, ISO 27001,
    RODO w pełnym zakresie) wpływająca na retencję i redakcję danych
    (§11)?
-4. Czy warstwa LLM kontekstowa (§6.1 warstwa 3, opcja) ma korzystać z
+4. ~~Czy warstwa LLM kontekstowa (§6.1 warstwa 3, opcja) ma korzystać z
    modelu hostowanego zewnętrznie (ryzyko wycieku danych żądań do
    trzeciej strony — wymaga redakcji przed wysyłką) czy z modelu
-   hostowanego lokalnie?
+   hostowanego lokalnie?~~ **Częściowo odpowiedziane (2026-09-25)** —
+   patrz [notebooks/llm_contextual_review_prototype.ipynb](../notebooks/llm_contextual_review_prototype.ipynb)
+   i issue [#16](https://github.com/pamsmediatech-lang/ai-waf-spec/issues/16).
+   Test na żywym API: `gemini-3.5-flash-lite` (hosting zewnętrzny) osiągnął
+   **100% recall** na payloadach z `EVASIVE_PAYLOADS`, które regex z
+   `rules.py` celowo omija, przy **0% FP rate** na benignych zdaniach
+   zawierających słowa kluczowe SQL w normalnym języku. Wynik jednoznacznie
+   przemawia za hostingiem zewnętrznym *pod względem skuteczności* —
+   nierozstrzygnięte pozostaje ryzyko prywatności (payloady, nawet
+   zredagowane, trafiają do trzeciej strony, patrz §11) oraz porównanie
+   z wariantem lokalnym (`small`/`big` w tym samym notebooku, nie
+   uruchomione jeszcze na tym samym zestawie testowym).
 5. Jaki SLA dostępności obowiązuje chronioną aplikację — wpływa na
    wybór fail-open/fail-closed (§13.1)?
 
@@ -589,3 +600,4 @@ gantt
 |---|---|---|
 | 2026-09-23 | 0.1.0 | Pierwsza wersja specyfikacji |
 | 2026-09-23 | 0.2.0 | Dodano diagramy (Mermaid): architektura (§5.1), pipeline detekcji (§6.1), rollout modeli (§10.2), harmonogram wdrożenia (§14) |
+| 2026-09-25 | 0.3.0 | Częściowa odpowiedź na otwarte pytanie #4 (§15) — wynik testu LLM na żywym API, patrz notebooks/llm_contextual_review_prototype.ipynb |
