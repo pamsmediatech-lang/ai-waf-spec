@@ -1,6 +1,6 @@
 {
   "model_version": "content-classifier-v0.1.0",
-  "trained_at": "2026-09-23T15:29:37.936258+00:00",
+  "trained_at": "2026-09-25T14:44:28.242197+00:00",
   "feature_names": [
     "max_field_entropy",
     "max_field_length",
@@ -16,39 +16,39 @@
     "seed": 42
   },
   "metrics": {
-    "precision": 0.972972972972973,
-    "recall": 1.0,
-    "f1": 0.9863013698630136
+    "precision": 1.0,
+    "recall": 0.9666666666666667,
+    "f1": 0.9830508474576272
   },
   "feature_importances": [
     [
       "max_field_length",
-      0.3076400873189145
+      0.33755788132320813
     ],
     [
       "rule_hit_count",
-      0.25741939525217566
+      0.22428863836981866
     ],
     [
       "max_rule_severity",
-      0.19902478104224822
+      0.1815159021366378
     ],
     [
       "max_field_entropy",
-      0.12917367572209715
+      0.14425520675849446
     ],
     [
       "requests_last_window",
-      0.10503918716870608
+      0.11215730876668574
     ],
     [
       "unique_endpoints_last_window",
-      0.0017028734958583903
+      0.00022506264515528151
     ],
     [
       "reputation_score",
       0.0
     ]
   ],
-  "report_text": "              precision    recall  f1-score   support\n\n      benign       1.00      0.97      0.99       180\n   malicious       0.97      1.00      0.99       180\n\n    accuracy                           0.99       360\n   macro avg       0.99      0.99      0.99       360\nweighted avg       0.99      0.99      0.99       360\n"
+  "report_text": "              precision    recall  f1-score   support\n\n      benign       0.97      1.00      0.98       180\n   malicious       1.00      0.97      0.98       180\n\n    accuracy                           0.98       360\n   macro avg       0.98      0.98      0.98       360\nweighted avg       0.98      0.98      0.98       360\n"
 }
