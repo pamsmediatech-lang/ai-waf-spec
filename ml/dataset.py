@@ -54,6 +54,36 @@ BENIGN_BODIES = [
     "username=jan.kowalski&remember_me=true",
     '{"address": "ul. Kwiatowa 5, 00-001 Warszawa"}',
     '{"feedback": "Support team and delivery were both excellent."}',
+    # Rozszerzenie (n=9 -> n=20) po krytyce wiarygodności: 9 recznie
+    # dobranych "pulapek" nie mowi nic o FP rate na skale produkcyjna
+    # (spec celuje w <=0.1%, do czego potrzeba tysiecy probek, nie 9) --
+    # to nadal nie jest ten skala, ale wieksza i bardziej zroznicowana
+    # (PL/EN, rozne rejestry jezykowe) niz poprzednio.
+    '{"comment": "Wybierz opcje, ktora Ci najbardziej odpowiada."}',
+    '{"comment": "Zamowienie albo dostawa, cokolwiek bedzie szybsze."}',
+    '{"review": "Ten skrypt teatralny byl naprawde swietny, polecam."}',
+    '{"comment": "Or maybe we should wait until next week instead."}',
+    '{"bio": "Union member since 2015, proud of our local chapter."}',
+    '{"comment": "Select all that apply: breakfast, lunch, or dinner."}',
+    '{"note": "Drop by the office anytime after 9am, no appointment needed."}',
+    '{"comment": "I drop everything when a customer needs urgent help."}',
+    '{"query": "best hiking trails near Krakow or Zakopane"}',
+    '{"message": "Twoje zamowienie zostalo zaktualizowane, dziekujemy."}',
+    '{"comment": "AND that is exactly why I chose your service."}',
+    # Celowo KROTKIE benigne wpisy (5-20 znakow) -- bez nich wszystkie
+    # benigne probki miely dlugosc 38-72 znakow, a EVASIVE_PAYLOADS
+    # (malicious, rule_hit_count=0) sa typowo krotsze (11-13 znakow).
+    # RandomForest w ml/train.py nauczyl sie wtedy "krotkie pole = ewazja"
+    # jako proxy zamiast polegac na rule_hit_count/severity (znalezione
+    # przez test_ml_scorer.py: fixture z rule_hit_count=1, severity=5
+    # scorowal NIZEJ niz czysto benigna probka, tylko dlatego ze byl
+    # "za dlugi" jak na wzorzec z treningu). To rozbija ta falszywa
+    # korelacje dlugosc<->klasa.
+    "tak",
+    "nie, dziekuje",
+    "5/5, super produkt",
+    "ok, potwierdzam",
+    "super!",
     "",
 ]
 
@@ -102,6 +132,20 @@ EVASIVE_PAYLOADS: list[tuple[str, str]] = [
     # też wcale nie testowało ominięcia reguły command-injection.
     ("command_injection", "8.8.8.8\ncat /tmp/secret.txt"),  # separator to newline, nie ; | &&
     ("command_injection", "127.0.0.1\nwhoami"),
+    # Rozszerzenie zbioru (n=5 -> n=11) po krytyce wiarygodności testu
+    # LLM: n=5 na kategorie daje zbyt szeroki przedzial ufnosci (95% CI
+    # dla 5/5 trafien to ok. 55-100%, nie "100%"), zeby cokolwiek
+    # stwierdzic statystycznie. Kazdy ponizszy zweryfikowany osobno
+    # (evaluate() == []) przed dodaniem, ta sama dyscyplina co wyzej.
+    ("sqli", "1' || '1'='1"),  # SQL OR operator '||' zamiast slowa kluczowego "or"
+    ("sqli", "1; SELECT password FROM users"),  # stacked query bez UNION/DROP TABLE
+    # Brak dotad ZADNEGO przykladu xss w EVASIVE_PAYLOADS -- luka w
+    # pokryciu kategorii, nie tylko w liczbie probek.
+    ("xss", "<body onpageshow=alert(1)>"),  # handler spoza listy 941101 (error|load|click|mouseover)
+    ("xss", "<details open ontoggle=alert(1)>"),  # jw., inny handler spoza listy
+    ("path_traversal", "....//....//etc/shadow"),  # pojedynczy "../" (regula wymaga {2,}) + cel spoza literalow reguly
+    # separator ';' ok, ale komenda "id" spoza whitelisty (cat|ls|whoami|rm|curl|wget|nc)
+    ("command_injection", "8.8.8.8; id"),
 ]
 
 
